@@ -6,6 +6,16 @@
   --color-brand-dark: #1a1a1a;
 }
 
+@layer base {
+  html,
+  body {
+    overflow-x: clip;
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    overscroll-behavior-x: none;
+  }
+}
+
 @keyframes shimmer {
   0% {
     background-position: 0 0;

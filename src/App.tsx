@@ -6,7 +6,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   Search,
-  User,
   ShoppingCart,
   Menu,
   ChevronLeft,
@@ -45,6 +44,7 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [cartCount, setCartCount] = useState(0);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
   const [selectedQty, setSelectedQty] = useState<number>(1);
@@ -52,6 +52,7 @@ export default function App() {
   const [isCalculatingCep, setIsCalculatingCep] = useState(false);
   const [cepError, setCepError] = useState<string | null>(null);
   const [selectedCepShipping, setSelectedCepShipping] = useState<'pac' | 'sedex'>('pac');
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const currentProduct: ProductOption =
     PRODUCTS.find((p) => p.qty === selectedQty) || PRODUCTS[0];
@@ -138,6 +139,28 @@ export default function App() {
     }
   }, []);
 
+  // Focus search input without scrolling the page and support Escape to close overlays
+  useEffect(() => {
+    if (isSearchOpen) {
+      requestAnimationFrame(() => {
+        searchInputRef.current?.focus({ preventScroll: true });
+      });
+    }
+  }, [isSearchOpen]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedPhoto(null);
+        setIsCartOpen(false);
+        setIsMenuOpen(false);
+        setIsSearchOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const nextImage = () => {
     setActiveImageIndex((prev) => (prev + 1) % currentGallery.length);
   };
@@ -194,8 +217,19 @@ export default function App() {
     window.location.assign(targetCheckoutUrl);
   };
 
+  const scrollToSection = useCallback((id: string) => {
+    setIsMenuOpen(false);
+    setIsSearchOpen(false);
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden bg-brand-support font-sans">
+    <div id="topo" className="min-h-screen flex flex-col overflow-x-clip bg-brand-support font-sans">
       {/* Prime Store Header in Pink (Conforme imagem) */}
       <header className="bg-gradient-to-r from-brand-accent to-[#A63A54] text-white sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between relative">
@@ -218,7 +252,12 @@ export default function App() {
           </div>
 
           {/* Center: PRIME STORE Logo truly centered in the header */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center select-none cursor-pointer whitespace-nowrap">
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            aria-label="Prime Store - Topo"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center select-none cursor-pointer whitespace-nowrap"
+          >
             <div className="flex items-center justify-center gap-2">
               <div className="w-3.5 sm:w-5 h-[1.5px] bg-white/70" />
               <span className="text-white font-black text-sm sm:text-base tracking-[0.25em] pl-[0.25em] uppercase font-sans text-center">
@@ -233,10 +272,10 @@ export default function App() {
               </span>
               <div className="w-5 sm:w-7 h-[1px] bg-white/50" />
             </div>
-          </div>
+          </button>
 
           {/* Right: Shopping Bag */}
-          <div className="flex items-center">
+          <div className="flex items-center z-10">
             <button
               onClick={() => setIsCartOpen(true)}
               aria-label="Carrinho"
@@ -252,18 +291,50 @@ export default function App() {
           </div>
         </div>
 
-        {/* Collapsible Search Input */}
+        {/* Collapsible Search Input (16px font prevents mobile auto-zoom) */}
         {isSearchOpen && (
           <div className="overflow-hidden bg-black/10 px-4 py-2 border-t border-white/10">
-            <div className="max-w-xl mx-auto relative">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = searchQuery.toLowerCase();
+                if (q.includes('3')) {
+                  setSelectedQty(3);
+                  setActiveImageIndex(0);
+                } else if (q.includes('2') || q.includes('roses')) {
+                  setSelectedQty(2);
+                  setActiveImageIndex(0);
+                } else if (q.includes('1')) {
+                  setSelectedQty(1);
+                  setActiveImageIndex(0);
+                }
+                searchInputRef.current?.blur();
+                setIsSearchOpen(false);
+              }}
+              className="max-w-xl mx-auto relative"
+            >
               <input
+                ref={searchInputRef}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="O que você está procurando hoje?"
-                className="w-full bg-white text-gray-800 rounded-full py-2 px-4 pl-10 text-xs focus:outline-none shadow-sm"
-                type="text"
-                autoFocus
+                className="w-full bg-white text-gray-800 rounded-full py-2 px-10 text-base leading-snug focus:outline-none shadow-sm"
+                type="search"
+                enterKeyHint="search"
               />
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-            </div>
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              <button
+                type="button"
+                aria-label="Fechar pesquisa"
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsSearchOpen(false);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </form>
           </div>
         )}
       </header>
@@ -560,8 +631,8 @@ export default function App() {
               </span>
             </div>
 
-            {/* Shipping Calculator */}
-            <div className="mb-8 border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+            {/* Shipping Calculator (16px font + numeric keypad prevents mobile auto-zoom) */}
+            <div id="frete" className="mb-8 border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
               <div className="flex items-center gap-2 mb-4 text-gray-900">
                 <Truck className="text-brand-accent w-5 h-5" />
                 <span className="text-xs font-bold uppercase tracking-widest">
@@ -570,20 +641,28 @@ export default function App() {
               </div>
               <div className="flex gap-2 mb-2">
                 <input
-                  maxLength={8}
                   placeholder="00000-000"
-                  className="flex-grow border-2 border-gray-100 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-brand-accent transition-colors"
+                  className="flex-grow min-w-0 border-2 border-gray-100 rounded-lg px-4 py-2 text-base focus:outline-none focus:border-brand-accent transition-colors"
                   type="text"
-                  value={cepInput}
+                  inputMode="numeric"
+                  autoComplete="postal-code"
+                  enterKeyHint="done"
+                  value={cepInput.length > 5 ? `${cepInput.slice(0, 5)}-${cepInput.slice(5)}` : cepInput}
                   onChange={(e) => {
-                    setCepInput(e.target.value.replace(/\D/g, ''));
+                    setCepInput(e.target.value.replace(/\D/g, '').slice(0, 8));
                     if (cepError) setCepError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && cepInput.length === 8) {
+                      e.currentTarget.blur();
+                      handleCalculateCep();
+                    }
                   }}
                 />
                 <button
                   onClick={handleCalculateCep}
                   disabled={isCalculatingCep || cepInput.length !== 8}
-                  className="bg-brand-dark text-white px-6 py-2 rounded-lg text-xs font-bold uppercase hover:opacity-90 transition-colors disabled:opacity-50 cursor-pointer"
+                  className="bg-brand-dark text-white px-6 py-2 rounded-lg text-xs font-bold uppercase hover:opacity-90 transition-colors disabled:opacity-50 cursor-pointer shrink-0"
                 >
                   {isCalculatingCep ? '...' : 'Calcular'}
                 </button>
@@ -664,7 +743,7 @@ export default function App() {
                               <p className="text-xs sm:text-sm font-bold text-gray-900 leading-tight">
                                 Sedex
                               </p>
-                              <span className="bg-[#FFC700] text-[#002D52] font-black italic text-[9px] px-1.5 py-0.2 rounded uppercase leading-none">
+                              <span className="bg-[#FFC700] text-[#002D52] font-black italic text-[9px] px-1.5 py-0.5 rounded uppercase leading-none">
                                 SEDEX
                               </span>
                             </div>
@@ -747,7 +826,7 @@ export default function App() {
             </div>
 
             {/* Accordions */}
-            <div className="border-t border-gray-100 divide-y divide-gray-100">
+            <div id="descricao" className="border-t border-gray-100 divide-y divide-gray-100">
               {/* Product Description */}
               <details className="py-4 group" open>
                 <summary className="flex justify-between items-center cursor-pointer list-none text-xs font-bold uppercase tracking-widest text-gray-900">
@@ -840,7 +919,7 @@ export default function App() {
                   </div>
                 ))
               : [
-                  { title: 'Delight', desc: 'Docura Irresistível.' },
+                  { title: 'Delight', desc: 'Doçura Irresistível.' },
                   { title: 'Very Sexy', desc: 'Mistério e Atração.' },
                   { title: 'Roses', desc: 'Elegância Floral.' },
                 ].map((item, idx) => (
@@ -921,7 +1000,7 @@ export default function App() {
         </section>
 
         {/* Customer Reviews Section */}
-        <section className="mt-20 border-t border-gray-100 pt-12">
+        <section id="avaliacoes" className="mt-20 border-t border-gray-100 pt-12">
           <div className="flex flex-col md:flex-row justify-between items-baseline mb-10 gap-4">
             <h3 className="text-3xl font-bold uppercase tracking-tighter text-brand-dark">
               O que nossos clientes dizem
@@ -1036,7 +1115,7 @@ export default function App() {
         </section>
 
         {/* Contact Section */}
-        <section className="mt-8 border-t border-gray-100 pt-8 pb-12">
+        <section id="contato" className="mt-8 border-t border-gray-100 pt-8 pb-12">
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <h3 className="text-xl font-bold uppercase tracking-widest mb-4">Fale Conosco</h3>
@@ -1044,15 +1123,18 @@ export default function App() {
                 Dúvidas sobre seu pedido ou sobre nossos produtos? Estamos aqui para ajudar!
               </p>
               <div className="space-y-3">
-                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                  <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center">
+                <a
+                  href="mailto:contato@primestore.com.br"
+                  className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                >
+                  <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shrink-0">
                     <Mail className="w-5 h-5" />
                   </div>
                   <div>
                     <p className="text-[10px] font-bold uppercase text-gray-400">E-mail</p>
                     <p className="text-sm font-bold">contato@primestore.com.br</p>
                   </div>
-                </div>
+                </a>
               </div>
             </div>
           </div>
@@ -1081,12 +1163,13 @@ export default function App() {
               Elevando sua autoestima através de fragrâncias exclusivas e momentos de autocuidado.
             </p>
             <div className="flex gap-4">
-              <button
+              <a
+                href="mailto:contato@primestore.com.br"
                 aria-label="Email"
                 className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-brand-accent transition-all cursor-pointer"
               >
                 <Mail className="w-[18px] h-[18px]" />
-              </button>
+              </a>
             </div>
           </div>
 
@@ -1096,15 +1179,21 @@ export default function App() {
               Institucional
             </h4>
             <ul className="text-sm text-gray-400 space-y-4">
-              {['Nossa História', 'Trabalhe Conosco', 'Sustentabilidade', 'Blog da Prime'].map(
-                (item, idx) => (
-                  <li key={idx}>
-                    <button className="hover:text-brand-accent transition-colors cursor-pointer">
-                      {item}
-                    </button>
-                  </li>
-                )
-              )}
+              {[
+                { label: 'Nossa História', target: 'avaliacoes' },
+                { label: 'Qualidade & Garantia', target: 'descricao' },
+                { label: 'Avaliações de Clientes', target: 'avaliacoes' },
+                { label: 'Sobre a Loja', target: 'topo' },
+              ].map((item, idx) => (
+                <li key={idx}>
+                  <button
+                    onClick={() => scrollToSection(item.target)}
+                    className="hover:text-brand-accent transition-colors cursor-pointer"
+                  >
+                    {item.label}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -1114,15 +1203,21 @@ export default function App() {
               Suporte
             </h4>
             <ul className="text-sm text-gray-400 space-y-4">
-              {['Trocas e Devoluções', 'Prazos de Entrega', 'Meios de Pagamento', 'Fale Conosco'].map(
-                (item, idx) => (
-                  <li key={idx}>
-                    <button className="hover:text-brand-accent transition-colors cursor-pointer">
-                      {item}
-                    </button>
-                  </li>
-                )
-              )}
+              {[
+                { label: 'Trocas e Devoluções', target: 'descricao' },
+                { label: 'Prazos de Entrega', target: 'frete' },
+                { label: 'Meios de Pagamento', target: 'topo' },
+                { label: 'Fale Conosco', target: 'contato' },
+              ].map((item, idx) => (
+                <li key={idx}>
+                  <button
+                    onClick={() => scrollToSection(item.target)}
+                    className="hover:text-brand-accent transition-colors cursor-pointer"
+                  >
+                    {item.label}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -1185,7 +1280,7 @@ export default function App() {
                     />
                     <div className="flex-grow">
                       <p className="text-xs font-bold text-gray-900 uppercase leading-tight mb-1">
-                        Body Splash My Sweet Delight
+                        {currentProduct.name}
                       </p>
                       <p className="text-sm font-bold text-brand-accent mb-3">
                         R$ {currentProduct.price.toFixed(2).replace('.', ',')}
@@ -1310,19 +1405,31 @@ export default function App() {
                     Categorias
                   </h4>
                   <ul className="space-y-4">
-                    {['Lançamentos', 'Body Splash', 'Perfumes', 'Skincare', 'Kits Presente'].map(
-                      (cat, idx) => (
-                        <li key={idx}>
-                          <button
-                            onClick={() => setIsMenuOpen(false)}
-                            className="text-lg font-bold text-gray-900 hover:text-brand-accent transition-colors w-full text-left flex items-center justify-between group cursor-pointer"
-                          >
-                            <span>{cat}</span>
-                            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-brand-accent transition-colors" />
-                          </button>
-                        </li>
-                      )
-                    )}
+                    {[
+                      { label: 'Lançamentos', qty: 1 },
+                      { label: 'Body Splash', qty: 1 },
+                      { label: 'Kit 2 Frascos', qty: 2 },
+                      { label: 'Kit 3 Frascos', qty: 3 },
+                      { label: 'Avaliações', section: 'avaliacoes' },
+                    ].map((cat, idx) => (
+                      <li key={idx}>
+                        <button
+                          onClick={() => {
+                            if (cat.qty) {
+                              setSelectedQty(cat.qty);
+                              setActiveImageIndex(0);
+                              scrollToSection('topo');
+                            } else if (cat.section) {
+                              scrollToSection(cat.section);
+                            }
+                          }}
+                          className="text-lg font-bold text-gray-900 hover:text-brand-accent transition-colors w-full text-left flex items-center justify-between group cursor-pointer"
+                        >
+                          <span>{cat.label}</span>
+                          <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-brand-accent transition-colors" />
+                        </button>
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </nav>

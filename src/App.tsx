@@ -231,7 +231,7 @@ export default function App() {
   return (
     <div id="topo" className="min-h-screen flex flex-col overflow-x-clip bg-brand-support font-sans">
       {/* Prime Store Header in Pink (Conforme imagem) */}
-      <header className="bg-gradient-to-r from-brand-accent to-[#A63A54] text-white sticky top-0 z-40 shadow-md">
+      <header className="bg-gradient-to-r from-brand-accent to-[#A63A54] text-white relative z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between relative">
           {/* Left: Menu & Search */}
           <div className="flex items-center gap-1.5 sm:gap-2 z-10">

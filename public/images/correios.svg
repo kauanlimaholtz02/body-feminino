@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <defs>
+    <linearGradient id="correiosYellow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE814" />
+      <stop offset="100%" stop-color="#FFD200" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.15" />
+    </filter>
+  </defs>
+  
+  <!-- Outer Rounded Card -->
+  <rect width="160" height="160" rx="32" fill="url(#correiosYellow)" filter="url(#shadow)" />
+  <rect x="4" y="4" width="152" height="152" rx="28" stroke="#FFFFFF" stroke-width="2" fill="none" opacity="0.4" />
+  
+  <!-- Correios Emblem (Official Double Chevron Arrows) -->
+  <g transform="translate(24, 20)">
+    <!-- Top Left Arrow -->
+    <path d="M12 40 L44 14 L74 38 L58 50 L44 38 L26 52 Z" fill="#00416B" />
+    <!-- Bottom Right Arrow -->
+    <path d="M100 36 L68 62 L38 38 L54 26 L68 38 L86 24 Z" fill="#00416B" />
+  </g>
+  
+  <!-- Text Label -->
+  <g transform="translate(80, 114)">
+    <text text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="20" fill="#00416B" letter-spacing="1">CORREIOS</text>
+  </g>
+  
+  <!-- Sedex / Express Tag -->
+  <g transform="translate(42, 126)">
+    <rect width="76" height="18" rx="9" fill="#00416B" />
+    <text x="38" y="13" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="800" font-size="10" fill="#FFE814" letter-spacing="0.5">FULL • EXPRESS</text>
+  </g>
+</svg>

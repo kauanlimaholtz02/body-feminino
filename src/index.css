@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-accent: #d14d72;
+  --color-brand-support: #fdf7f8;
+  --color-brand-dark: #1a1a1a;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 40px 0;
+  }
+}

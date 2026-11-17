@@ -285,12 +285,12 @@ export default function App() {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-grow max-w-7xl mx-auto w-full px-4 py-5 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12">
+      <main className="flex-grow max-w-7xl mx-auto w-full px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Left Column: Product Images Carousel */}
-          <div className="lg:col-span-7 space-y-3.5">
+          <div className="lg:col-span-7 space-y-4">
             <div
-              className="relative aspect-[9/10] max-w-[348px] sm:max-w-[380px] mx-auto bg-white overflow-hidden group rounded-lg border border-gray-100 shadow-sm"
+              className="relative aspect-[4/5] max-w-[380px] mx-auto bg-white overflow-hidden group rounded-sm border border-gray-100 shadow-sm"
               onTouchStart={(e) => {
                 touchStartXRef.current = e.touches[0]?.clientX ?? null;
               }}
@@ -305,7 +305,7 @@ export default function App() {
               <img
                 key={currentGallery[activeImageIndex]}
                 alt="Product Image"
-                className="w-full h-full object-contain p-1 select-none transition-opacity duration-150"
+                className="w-full h-full object-cover select-none transition-opacity duration-150"
                 src={currentGallery[activeImageIndex]}
                 referrerPolicy="no-referrer"
                 loading="eager"
@@ -317,26 +317,26 @@ export default function App() {
               <button
                 aria-label="Imagem Anterior"
                 onClick={prevImage}
-                className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hidden md:block cursor-pointer"
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hidden md:block cursor-pointer"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-800" />
+                <ChevronLeft className="w-6 h-6 text-gray-800" />
               </button>
               <button
                 aria-label="Próxima Imagem"
                 onClick={nextImage}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hidden md:block cursor-pointer"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/90 backdrop-blur-sm rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hidden md:block cursor-pointer"
               >
-                <ChevronRight className="w-5 h-5 text-gray-800" />
+                <ChevronRight className="w-6 h-6 text-gray-800" />
               </button>
             </div>
 
             {/* Thumbnail Strip */}
-            <div className="flex justify-center gap-2 overflow-x-auto py-1">
+            <div className="flex justify-center gap-2 overflow-x-auto py-2">
               {currentGallery.map((imgUrl, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
-                  className={`flex-shrink-0 w-14 aspect-square border-2 transition-all rounded-md overflow-hidden cursor-pointer bg-white ${
+                  className={`flex-shrink-0 w-14 aspect-[4/5] border-2 transition-all rounded-sm overflow-hidden cursor-pointer ${
                     activeImageIndex === idx
                       ? 'border-brand-accent'
                       : 'border-transparent opacity-60 hover:opacity-100'
@@ -355,7 +355,7 @@ export default function App() {
             </div>
 
             {/* Stock Scarcity Bar */}
-            <div className="max-w-[348px] sm:max-w-[380px] mx-auto w-full mt-4">
+            <div className="max-w-[380px] mx-auto w-full mt-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 bg-brand-accent rounded-full animate-pulse" />
